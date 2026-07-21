@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audio无限+</title>
+  <link rel="stylesheet" href="popup.css">
+  <link rel="stylesheet" href="../eq/eq-panel.css">
+</head>
+<body>
+  <header class="hd">
+    <div class="brand">
+      <span class="mark" aria-hidden="true"></span>
+      <div class="titles">
+        <h1>Audio无限+</h1>
+        <span class="ver">1.0.0</span>
+      </div>
+    </div>
+    <div class="hd-actions">
+      <button class="iconbtn" id="openEQ" title="高级均衡器" aria-label="高级均衡器">
+        <svg viewBox="0 0 24 24" width="17" height="17"><path d="M3 12h3l2-7 4 14 3-9 2 4h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="iconbtn" id="openSettings" title="设置" aria-label="设置">
+        <svg viewBox="0 0 24 24" width="17" height="17"><path d="M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M19 12a7 7 0 00-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 00-2-1.2L14.2 2h-4l-.4 2.7a7 7 0 00-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 005 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 002 1.2l.4 2.7h4l.4-2.7a7 7 0 002-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".55"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="tab-pill" id="tabPill">当前标签页</div>
+
+  <!-- 初始化错误提示 -->
+  <div id="errorOverlay">
+    <h3>界面初始化失败</h3>
+    <p>请尝试刷新页面或重新加载扩展。</p>
+    <p class="hint">如问题持续，请右键扩展图标 →「管理扩展程序」→ 打开「开发者模式」→ 点击「背景页」查看 Console 错误。</p>
+    <pre id="errorText"></pre>
+  </div>
+
+  <!-- 主视图：完整音频增强 -->
+  <div id="mainView" class="view scrollable">
+    <!-- 音频增强卡片 -->
+    <section class="panel" id="enhanceCard">
+      <div class="switch-row">
+        <div class="switch-label">
+          <span class="switch-title">音频增强</span>
+          <span class="switch-state" id="enhanceState">已关闭</span>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="enhanceToggle">
+          <span class="track"></span>
+        </label>
+      </div>
+
+      <div class="card-body" id="enhanceBody">
+        <div class="block-title">音效预设</div>
+        <div class="presets" id="presets">
+          <button class="preset" data-preset="balanced">标准均衡</button>
+          <button class="preset" data-preset="voice">人声优先</button>
+          <button class="preset" data-preset="music">音乐/影视</button>
+          <button class="preset" data-preset="denoise">强力降噪</button>
+        </div>
+
+        <div class="block">
+          <div class="block-title"><span>人声清晰度</span><span class="val" id="clarityVal">标准</span></div>
+          <input type="range" id="clarity" min="0" max="100" step="1" value="50" class="range">
+          <div class="scale"><span>模糊</span><span>清亮</span></div>
+        </div>
+
+        <div class="block">
+          <div class="block-title"><span>环绕音效</span><span class="val" id="widthVal">关</span></div>
+          <input type="range" id="width" min="100" max="300" step="1" value="100" class="range">
+          <div class="scale"><span>关</span><span>300%</span></div>
+        </div>
+
+        <div class="block">
+          <div class="block-title"><span>主音量</span><span class="val" id="gainVal">100%</span></div>
+          <input type="range" id="masterGain" min="50" max="600" step="5" value="100" class="range">
+          <div class="scale"><span>50%</span><span>600%</span></div>
+        </div>
+      </div>
+
+      <div class="status-bar">
+        <span>媒体 <b id="mediaCount">0</b></span>
+        <span>引擎 <b id="engineState">运行中</b></span>
+      </div>
+    </section>
+
+    <!-- 全局音量增强卡片（仅非站内页） -->
+    <section class="panel" id="boostCard" hidden>
+      <div class="switch-row">
+        <div class="switch-label">
+          <span class="switch-title">音量增强</span>
+          <span class="switch-state" id="boostState">已关闭</span>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="boostToggle">
+          <span class="track"></span>
+        </label>
+      </div>
+      <div class="block" style="margin-top:12px">
+        <div class="block-title"><span>放大倍数</span><span class="val" id="boostVal">150%</span></div>
+        <input type="range" id="boostGain" min="50" max="600" step="10" value="150" class="range">
+        <div class="scale"><span>50%</span><span>600%</span></div>
+      </div>
+    </section>
+
+    <button class="local-btn" id="openLocal">打开内置本地播放器</button>
+
+    <footer class="ft"><span>Audio无限+ · 1.0.0</span></footer>
+  </div>
+
+  <!-- 设置视图：可滚动完整页面 -->
+  <div id="settingsPanel" class="view scrollable" hidden>
+    <div class="set-hd">
+      <h2>设置</h2>
+      <button class="set-done" id="settingsDone">完成</button>
+    </div>
+
+    <section class="panel">
+      <div class="block-title">外观</div>
+      <div class="field">
+        <span class="field-label">主题</span>
+        <div class="seg" id="s_themeSeg">
+          <button data-theme="dark" class="seg-btn">深色</button>
+          <button data-theme="light" class="seg-btn">浅色</button>
+        </div>
+      </div>
+      <div class="field">
+        <span class="field-label">强调色</span>
+        <div class="swatches" id="s_swatches"></div>
+        <label class="color-pick">
+          <input type="color" id="s_accentInput" value="#6C5CE7">
+          <span>自定义</span>
+        </label>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="block-title">功能模块</div>
+      <div class="toggle-row" data-mod="vocal"><div><div class="t-name">人声增强</div><div class="t-desc">提升人声清晰度与存在感</div></div><label class="toggle"><input type="checkbox"><span class="track"></span></label></div>
+      <div class="toggle-row" data-mod="denoise"><div><div class="t-name">降噪</div><div class="t-desc">滤除环境噪音与低频隆隆</div></div><label class="toggle"><input type="checkbox"><span class="track"></span></label></div>
+      <div class="toggle-row" data-mod="compress"><div><div class="t-name">音量均衡</div><div class="t-desc">压缩动态，音量更平稳</div></div><label class="toggle"><input type="checkbox"><span class="track"></span></label></div>
+      <div class="toggle-row" data-mod="deesser"><div><div class="t-name">齿音抑制</div><div class="t-desc">柔化刺耳的“嘶”声</div></div><label class="toggle"><input type="checkbox"><span class="track"></span></label></div>
+      <div class="toggle-row" data-mod="air"><div><div class="t-name">高频空气感</div><div class="t-desc">提升高频，声音更明亮通透</div></div><label class="toggle"><input type="checkbox"><span class="track"></span></label></div>
+      <div class="toggle-row" data-mod="surround"><div><div class="t-name">环绕音效</div><div class="t-desc">拓宽声场，音乐/影视更有空间感</div></div><label class="toggle"><input type="checkbox"><span class="track"></span></label></div>
+    </section>
+
+    <button class="reset" id="resetBtn">恢复默认设置</button>
+  </div>
+
+  <!-- 高级均衡器视图（内联） -->
+  <div id="eqPanel" class="view" hidden>
+    <div class="set-hd">
+      <h2>高级均衡器 (EQ)</h2>
+      <button class="set-done" id="eqDone">完成</button>
+    </div>
+    <div id="eqMount" class="eq-mount"></div>
+  </div>
+
+  <script src="../audio-engine.js"></script>
+  <script src="../eq/eq-panel.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

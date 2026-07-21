@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Audio无限+ · 设置</title>
+  <link rel="stylesheet" href="options.css" />
+  <link rel="stylesheet" href="../eq/eq-panel.css" />
+</head>
+<body>
+  <main class="wrap">
+    <header class="hd">
+      <span class="mark" aria-hidden="true"></span>
+      <h1>设置</h1>
+    </header>
+
+    <section class="card">
+      <div class="card-title">外观</div>
+      <div class="field">
+        <span class="field-label">主题</span>
+        <div class="seg" id="themeSeg">
+          <button data-theme="dark" class="seg-btn">深色</button>
+          <button data-theme="light" class="seg-btn">浅色</button>
+        </div>
+      </div>
+      <div class="field">
+        <span class="field-label">强调色</span>
+        <div class="swatches" id="swatches"></div>
+        <label class="color-pick">
+          <input type="color" id="accentInput" value="#6C5CE7" />
+          <span>自定义</span>
+        </label>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-title">功能模块</div>
+      <div class="toggle-row" data-mod="vocal">
+        <div><div class="t-name">人声增强</div><div class="t-desc">提升人声清晰度与存在感</div></div>
+        <label class="toggle"><input type="checkbox"><span class="track"></span></label>
+      </div>
+      <div class="toggle-row" data-mod="denoise">
+        <div><div class="t-name">降噪</div><div class="t-desc">滤除环境噪音与低频隆隆</div></div>
+        <label class="toggle"><input type="checkbox"><span class="track"></span></label>
+      </div>
+      <div class="toggle-row" data-mod="compress">
+        <div><div class="t-name">音量均衡</div><div class="t-desc">压缩动态，音量更平稳</div></div>
+        <label class="toggle"><input type="checkbox"><span class="track"></span></label>
+      </div>
+      <div class="toggle-row" data-mod="deesser">
+        <div><div class="t-name">齿音抑制</div><div class="t-desc">柔化刺耳的“嘶”声</div></div>
+        <label class="toggle"><input type="checkbox"><span class="track"></span></label>
+      </div>
+      <div class="toggle-row" data-mod="air">
+        <div><div class="t-name">高频空气感</div><div class="t-desc">提升高频，声音更明亮通透</div></div>
+        <label class="toggle"><input type="checkbox"><span class="track"></span></label>
+      </div>
+      <div class="toggle-row" data-mod="surround">
+        <div><div class="t-name">环绕音效</div><div class="t-desc">拓宽声场，音乐/影视更有空间感</div></div>
+        <label class="toggle"><input type="checkbox"><span class="track"></span></label>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-title">高级均衡器 (EQ)</div>
+      <div id="eqMount" class="eq-mount"></div>
+    </section>
+
+    <button class="reset" id="resetBtn">恢复默认设置</button>
+  </main>
+
+  <script src="../audio-engine.js"></script>
+  <script src="../eq/eq-panel.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

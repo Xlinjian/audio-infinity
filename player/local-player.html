@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Audio无限+ · 本地播放器</title>
+  <link rel="stylesheet" href="local-player.css" />
+  <link rel="stylesheet" href="../eq/eq-panel.css" />
+</head>
+<body>
+  <main class="wrap">
+    <header class="hd">
+      <span class="mark" aria-hidden="true"></span>
+      <div class="titles">
+        <h1>Audio无限+</h1>
+        <span class="sub">本地播放器</span>
+      </div>
+      <a class="gear" id="openSettings" title="设置" href="#" aria-label="设置">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M19 12a7 7 0 00-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 00-2-1.2L14.2 2h-4l-.4 2.7a7 7 0 00-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 005 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 002 1.2l.4 2.7h4l.4-2.7a7 7 0 002-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".55"/></svg>
+      </a>
+    </header>
+
+    <section class="card drop" id="dropZone">
+      <input type="file" id="fileInput" accept="audio/*,video/*" hidden />
+      <div class="drop-inner">
+        <div class="big">点击选择文件</div>
+        <div class="hint">支持 mp3 / wav / m4a / flac 及常见视频音轨<br/>也可将文件拖到这里</div>
+      </div>
+      <button class="pick" id="pickBtn">选择本地文件</button>
+    </section>
+
+    <section class="card controls" id="controls" hidden>
+      <div class="row top">
+        <label class="switch">
+          <input type="checkbox" id="enableToggle" />
+          <span class="track"></span>
+          <span class="sw-label">音频增强</span>
+        </label>
+        <span class="badge" id="engineBadge">待播放</span>
+      </div>
+
+      <div class="row">
+        <span class="lbl">预设</span>
+        <div class="presets" id="presets"></div>
+      </div>
+
+      <div class="row col">
+        <div class="row-head"><span>人声清晰度</span><span class="val" id="clarityVal">标准</span></div>
+        <input type="range" id="clarity" min="0" max="100" value="50" class="range">
+        <div class="scale"><span>模糊</span><span>清亮</span></div>
+      </div>
+
+      <div class="row col">
+        <div class="row-head"><span>环绕音效</span><span class="val" id="widthVal">关</span></div>
+        <input type="range" id="width" min="100" max="220" value="100" step="5" class="range">
+        <div class="scale"><span>关</span><span>220%</span></div>
+      </div>
+
+      <div class="row col">
+        <div class="row-head"><span>主音量</span><span class="val" id="masterVal">100%</span></div>
+        <input type="range" id="masterGain" min="50" max="600" value="100" step="5" class="range">
+        <div class="scale"><span>50%</span><span>600%</span></div>
+      </div>
+
+      <div class="file-name" id="fileName">未选择文件</div>
+
+      <section class="card" id="eqCard" style="margin-top:14px;">
+        <div class="card-title">高级均衡器 (EQ)</div>
+        <div id="eqMount" class="eq-mount"></div>
+      </section>
+    </section>
+
+    <audio id="audio" controls hidden></audio>
+  </main>
+
+  <script src="../audio-engine.js"></script>
+  <script src="../eq/eq-panel.js"></script>
+  <script src="local-player.js"></script>
+</body>
+</html>

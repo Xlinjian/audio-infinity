@@ -1,0 +1,95 @@
+/* Audio无限+ - 内联参量均衡器面板样式（作用域限制在 .eq-mount 内，避免与宿主页冲突） */
+
+.eq-mount { display: block; }
+
+.eq-mount .panel {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px; margin-bottom: 12px;
+}
+.eq-mount .panel:last-child { margin-bottom: 0; }
+.eq-mount .panel-title {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 12px;
+}
+.eq-mount .panel-title .count {
+  background: var(--surface-2); color: var(--text); font-size: 11px;
+  padding: 2px 9px; border-radius: 999px;
+}
+
+/* 启用开关 + 曲线提示 */
+.eq-mount .curve-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.eq-mount .master-toggle { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; }
+.eq-mount .master-toggle input { opacity: 0; width: 0; height: 0; }
+.eq-mount .master-toggle .track {
+  position: relative; width: 44px; height: 25px; border-radius: 25px;
+  background: #3a3f4b; transition: .25s; flex: none; cursor: pointer;
+}
+[data-theme="light"] .eq-mount .master-toggle .track { background: #cdd3df; }
+.eq-mount .master-toggle .track::before {
+  content: ""; position: absolute; height: 19px; width: 19px; left: 3px; top: 3px;
+  background: #fff; border-radius: 50%; transition: .25s; box-shadow: 0 1px 3px rgba(0,0,0,.3);
+}
+.eq-mount .master-toggle input:checked + .track { background: var(--accent); }
+.eq-mount .master-toggle input:checked + .track::before { transform: translateX(19px); }
+.eq-mount .master-label { font-size: 14px; font-weight: 600; }
+.eq-mount .curve-hint { font-size: 12px; color: var(--accent); font-weight: 700; }
+
+/* 频率响应曲线 */
+.eq-mount .eq-curve {
+  width: 100%; height: 150px; display: block;
+  background: var(--surface-2); border-radius: 10px;
+}
+
+/* 频段行 */
+.eq-mount .bands { display: flex; flex-direction: column; gap: 12px; }
+.eq-mount .band {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px;
+}
+.eq-mount .band-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.eq-mount .band-idx {
+  width: 22px; height: 22px; border-radius: 6px; flex: none;
+  background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.eq-mount .band-type {
+  flex: 1; min-width: 0; padding: 7px 9px; font-size: 13px; font-weight: 600;
+  color: var(--text); background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; cursor: pointer; outline: none;
+}
+.eq-mount .band-bypass { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); cursor: pointer; white-space: nowrap; }
+.eq-mount .band-bypass input { accent-color: var(--accent); }
+.eq-mount .band-del {
+  width: 28px; height: 28px; flex: none; border: 1px solid var(--border);
+  background: var(--surface); color: var(--muted); border-radius: 8px; cursor: pointer; font-size: 13px;
+  transition: .15s;
+}
+.eq-mount .band-del:hover { color: #ff6b6b; border-color: #ff6b6b; }
+.eq-mount .band-del:disabled { opacity: .3; cursor: not-allowed; }
+
+.eq-mount .band-ctrl { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.eq-mount .ctrl { display: flex; flex-direction: column; gap: 6px; }
+.eq-mount .ctrl-label { font-size: 11px; color: var(--muted); }
+.eq-mount .ctrl-val { font-size: 11px; color: var(--accent); font-weight: 700; }
+
+/* 添加频段 */
+.eq-mount .add-band {
+  width: 100%; margin-top: 12px; padding: 11px; font-size: 13.5px; font-weight: 700; cursor: pointer;
+  color: var(--accent); background: var(--accent-soft); border: 1px dashed var(--accent);
+  border-radius: 11px; transition: .15s;
+}
+.eq-mount .add-band:hover { background: var(--accent); color: #fff; }
+
+/* 预设 */
+.eq-mount .presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.eq-mount .ep {
+  padding: 10px; font-size: 13px; border: 1px solid var(--border);
+  background: var(--surface-2); border-radius: 10px; cursor: pointer; color: var(--text);
+  font-weight: 600; transition: .15s;
+}
+.eq-mount .ep:hover { border-color: var(--accent); color: var(--accent); }
+
+@media (max-width: 560px) {
+  .eq-mount .band-ctrl { grid-template-columns: 1fr; }
+  .eq-mount .presets { grid-template-columns: repeat(2, 1fr); }
+}
