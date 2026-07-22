@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Audio无限+",
-  "version": "1.0.0",
-  "description": "Audio无限+：人声增强、降噪、音量均衡、环绕音效、高级均衡器（EQ），支持 B站 / 百度网盘 / 本地文件 / 任意网页，最高 600% 音量放大。",
+  "version": "2.3.6",
+  "description": "Audio无限+：人声增强、降噪、音量均衡、环绕音效、实时字幕、语音转文字、音频录制下载，支持 B站 / 百度网盘 / 本地文件 / 任意网页，最高 600% 音量放大。",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -35,12 +35,49 @@
       "js": ["audio-engine.js", "content/content.js"],
       "run_at": "document_idle",
       "all_frames": true
+    },
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*",
+        "file:///*"
+      ],
+      "js": ["subtitle/subtitle-defaults.js", "content/subtitle-overlay.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    },
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*",
+        "file:///*"
+      ],
+      "js": ["content/media-scanner.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    },
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*",
+        "file:///*"
+      ],
+      "js": ["content/media-control.js"],
+      "run_at": "document_idle",
+      "all_frames": false
     }
   ],
   "permissions": [
     "storage",
     "activeTab",
     "scripting",
-    "webNavigation"
+    "webNavigation",
+    "webRequest",
+    "downloads",
+    "offscreen",
+    "tabCapture"
+  ],
+  "host_permissions": [
+    "<all_urls>"
   ]
 }

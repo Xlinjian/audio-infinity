@@ -99,12 +99,7 @@
 
   // 模块总开关（可由设置页统一控制）
   const DEFAULT_MODULES = {
-    vocal: true,     // 人声增强（Peaking）
-    denoise: true,   // 降噪（高通 + 低频 Shelf）
-    compress: true,  // 音量均衡（压缩器）
-    deesser: true,   // 齿音抑制
-    air: true,       // 高频空气感（High Shelf）
-    surround: false  // 环绕音效（MS-Widener）
+    enhance: true    // 音频增强总开关（派生 vocal/denoise/compress/deesser/air/surround 全部细粒度处理）
   };
 
   // 参数均衡器（高级设置页）：多频段参量 EQ，每频段可调类型/频率/增益/Q
@@ -135,6 +130,9 @@
       this.nodes = new WeakMap();   // media -> bundle
       this.active = new Set();      // 当前接管的 media 集合
       this.state = { ...DEFAULT_STATE, modules: { ...DEFAULT_MODULES } };
+      // 录音/转写共用 tap：一个 MediaStreamAudioDestinationNode，汇总所有媒体已处理的输出
+      // （disabled=原始音，enabled=增强后的音）。供本地播放器的“录制 & 下载”“语音转文字”复用。
+      this.recordDest = null;
     }
 
     ensureContext() {
@@ -146,7 +144,18 @@
       if (this.ctx.state === 'suspended') {
         this.ctx.resume().catch(() => {});
       }
+      // 延迟创建录音 tap（仅在有 AudioContext 后；任意页面都能拿到，但仅在被请求时才有意义）
+      if (!this.recordDest) {
+        try { this.recordDest = this.ctx.createMediaStreamDestination(); } catch (e) { this.recordDest = null; }
+      }
       return this.ctx;
+    }
+
+    // 返回包含“已处理音频”的 MediaStream，供 MediaRecorder 录制 / WS 推流。
+    // 没有任何媒体被接管或上下文不可用时返回 null。
+    getRecordingStream() {
+      this.ensureContext();
+      return (this.recordDest && this.recordDest.stream) ? this.recordDest.stream : null;
     }
 
     // 为单个 media 建立处理节点（仅一次）
@@ -249,15 +258,24 @@
       const t = ctx.currentTime;
       const s = this.state;
       const mods = s.modules || DEFAULT_MODULES;
+      // 功能模块重构：单一的「音频增强」总开关派生出全部细粒度处理节点。
+      // 旧设置（vocal/denoise/...）无 enhance 键时视为开启，保证老用户音频不丢。
+      const enhance = mods.enhance !== false;
+      const m = {
+        vocal: enhance, denoise: enhance, compress: enhance, deesser: enhance, air: enhance,
+        surround: enhance
+      };
 
       // 每次重布线前先断开 source / merger / EQ 节点，避免“开→关→再开”残留错误连接
       try { b.source.disconnect(); } catch (e) {}
       try { b.merger.disconnect(); } catch (e) {}
       b.eqNodes.forEach((n) => { try { n.disconnect(); } catch (e) {} });
 
-      if (!s.enabled) {
-        // 关闭：source 直接连到扬声器（彻底旁路整条处理链），音频原样输出，绝不发闷
+      if (!s.enabled || !enhance) {
+        // 关闭或「音频增强」模块未启用：source 直接连到扬声器（彻底旁路整条处理链），音频原样输出，绝不发闷
         b.source.connect(ctx.destination);
+        // 录音/转写 tap：旁路时录到的也是原始音频，与用户听到的一致
+        if (this.recordDest) b.source.connect(this.recordDest);
         // 仍把各节点参数置为透明，便于下次启用时状态干净（不影响已被旁路的音频）
         b.highpass.frequency.setTargetAtTime(20, t, 0.02);
         b.lowShelf.gain.setTargetAtTime(0, t, 0.02);
@@ -274,6 +292,8 @@
       // 参数均衡器：按当前启用状态排好链路（source → EQ 链 → highpass，或 source → highpass）
       this._applyEqRouting(b, ctx);
       b.merger.connect(ctx.destination);
+      // 录音/转写 tap：把最终混合输出并行送到 recordDest，录制/转写拿到的就是已增强的音频
+      if (this.recordDest) b.merger.connect(this.recordDest);
 
       const p = { ...PRESETS[s.preset] };
       if (s.custom) Object.assign(p, s.custom);
@@ -289,11 +309,11 @@
       let noiseHighpass = p.noiseHighpass + (d > 0 ? d * 40 : 0); // 越亮，切掉更多隆隆
 
       // 模块总开关：关闭则对应节点透明
-      if (!mods.vocal) vocalGain = 0;
-      if (!mods.air) highShelfGain = 0;
-      if (!mods.deesser) deEsserGain = 0;
-      if (!mods.denoise) { noiseHighpass = 20; lowShelfGain = 0; }
-      if (!mods.compress) { p.compThreshold = 0; p.compRatio = 1; }
+      if (!m.vocal) vocalGain = 0;
+      if (!m.air) highShelfGain = 0;
+      if (!m.deesser) deEsserGain = 0;
+      if (!m.denoise) { noiseHighpass = 20; lowShelfGain = 0; }
+      if (!m.compress) { p.compThreshold = 0; p.compRatio = 1; }
 
       const ramp = 0.03; // 平滑过渡，避免爆音
       b.highpass.frequency.setTargetAtTime(noiseHighpass, t, ramp);
@@ -325,8 +345,8 @@
       // 参数均衡器：写入各频段类型/频率/增益/Q
       this._applyEqParams(b, t);
 
-      // ---- 环绕音效：仅当模块开启且 width>100 时拓宽 ----
-      const w = (mods.surround && s.width > 100) ? s.width : 100;
+      // ---- 环绕音效：由初始界面「环绕音效」滑块（width）控制，仅 width>100 时拓宽 ----
+      const w = (s.width > 100) ? s.width : 100;
       this._applyWidth(b, w, t);
     }
 

@@ -1,0 +1,51 @@
+:root {
+  --accent: #6C5CE7;
+  --bg: #0f0f17;
+  --card: #181826;
+  --card2: #1f1f30;
+  --text: #e8e8f0;
+  --muted: #9aa0b4;
+  --border: #2a2a3c;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font-family: 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', sans-serif;
+}
+.wrap { max-width: 880px; margin: 0 auto; padding: 22px 18px 48px; }
+.hd { display: flex; align-items: center; gap: 10px; }
+.mark { color: var(--accent); display: inline-flex; }
+.hd h1 { font-size: 20px; margin: 0; flex: 1; }
+.hd-actions { display: flex; gap: 8px; }
+.btn {
+  font: 13px/1 sans-serif; padding: 8px 12px; border-radius: 9px; cursor: pointer;
+  border: 1px solid var(--border); background: var(--card2); color: var(--text);
+}
+.btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn.danger { color: #ff8a8a; border-color: #5a2a2a; }
+.btn.danger:hover { background: #5a2a2a; }
+.hint { color: var(--muted); font-size: 13px; margin: 14px 0 18px; line-height: 1.6; }
+
+.list { display: flex; flex-direction: column; gap: 12px; }
+.session {
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
+}
+.s-head {
+  display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer;
+}
+.s-head .meta { flex: 1; min-width: 0; }
+.s-date { font-weight: 700; font-size: 14px; }
+.s-sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
+.s-actions { display: flex; gap: 6px; }
+.s-actions .btn { padding: 6px 10px; font-size: 12px; }
+.s-body { display: none; border-top: 1px solid var(--border); padding: 6px 14px 12px; max-height: 420px; overflow: auto; }
+.session.open .s-body { display: block; }
+.seg {
+  display: flex; gap: 10px; padding: 7px 0; border-bottom: 1px dashed var(--border); font-size: 14px; line-height: 1.5;
+}
+.seg:last-child { border-bottom: none; }
+.seg .t {
+  color: var(--accent); font-variant-numeric: tabular-nums; font-size: 12px; min-width: 64px; padding-top: 2px;
+}
+.seg .x { flex: 1; white-space: pre-wrap; word-break: break-word; }
+.empty { color: var(--muted); text-align: center; padding: 40px 0; }

@@ -13,10 +13,13 @@
       <span class="mark" aria-hidden="true"></span>
       <div class="titles">
         <h1>Audio无限+</h1>
-        <span class="ver">1.0.0</span>
+        <span class="ver">2.3.6</span>
       </div>
     </div>
     <div class="hd-actions">
+      <button class="iconbtn media-btn" id="openMedia" title="媒体控制" aria-label="媒体控制">
+        <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.16"/><path d="M10 8.2l6 3.8-6 3.8z" fill="currentColor"/></svg>
+      </button>
       <button class="iconbtn" id="openEQ" title="高级均衡器" aria-label="高级均衡器">
         <svg viewBox="0 0 24 24" width="17" height="17"><path d="M3 12h3l2-7 4 14 3-9 2 4h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
@@ -36,7 +39,7 @@
     <pre id="errorText"></pre>
   </div>
 
-  <!-- 主视图：完整音频增强 -->
+  <!-- 主视图：2.3.0 风格完整音频增强 + 实时字幕 -->
   <div id="mainView" class="view scrollable">
     <!-- 音频增强卡片 -->
     <section class="panel" id="enhanceCard">
@@ -104,9 +107,84 @@
       </div>
     </section>
 
+    <!-- 资源下载卡片：猫爪式资源嗅探列表 + 录制下载 -->
+    <section class="panel" id="resourceCard" hidden>
+      <div class="switch-row">
+        <div class="switch-label">
+          <span class="switch-title">资源下载</span>
+          <span class="switch-state" id="dlState">已关闭</span>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="dlToggle">
+          <span class="track"></span>
+        </label>
+      </div>
+      <div class="cap-params" id="dlParams" hidden>
+        <div class="res-toolbar">
+          <label class="res-checkall"><input type="checkbox" id="resAllCheck"> 全选</label>
+          <span class="res-sel" id="resSelCount">0/0</span>
+          <button class="preset sm" id="resRefresh">刷新</button>
+          <button class="preset sm" id="resBatchDl">批量下载</button>
+        </div>
+        <div class="res-list" id="resList"></div>
+
+        <div class="rec-wrap">
+          <div class="rec-head">
+            <span class="rec-title">录制音频</span>
+            <button class="preset sm" id="recBtn">开始录制</button>
+          </div>
+          <div class="rec-foot">
+            <span class="switch-state" id="recState">未录制</span>
+            <span class="rec-time" id="recTime">00:00</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 实时字幕卡片 -->
+    <section class="panel" id="captionCard">
+      <div class="switch-row">
+        <div class="switch-label">
+          <span class="switch-title">实时字幕</span>
+          <span class="switch-state" id="capState">已关闭</span>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="capToggle">
+          <span class="track"></span>
+        </label>
+      </div>
+
+      <div class="cap-params" id="capParams" hidden>
+        <div class="block">
+          <div class="block-title">识别引擎</div>
+          <select id="capEngine" class="select">
+            <option value="webspeech">Web Speech</option>
+            <option value="mimo">小米 MiMo</option>
+            <option value="custom">自定义 AI</option>
+          </select>
+        </div>
+        <div class="block">
+          <div class="block-title">识别语言</div>
+          <select id="capLang" class="select"></select>
+        </div>
+        <div class="block">
+          <div class="block-title">音源</div>
+          <div class="seg" id="capSrcSeg">
+            <button data-src="mic" class="seg-btn">麦克风</button>
+            <button data-src="tab" class="seg-btn">标签页音频</button>
+          </div>
+          <div class="hint" id="capSrcNote">Web Speech 仅支持麦克风</div>
+        </div>
+        <p class="hint" id="capApiNote" hidden>小米 MiMo / 自定义 AI 的 API 地址与密钥请在「设置 → 实时字幕」中配置。</p>
+        <div class="status-bar">
+          <span>状态 <b id="capStatus">识别中</b></span>
+        </div>
+      </div>
+    </section>
+
     <button class="local-btn" id="openLocal">打开内置本地播放器</button>
 
-    <footer class="ft"><span>Audio无限+ · 1.0.0</span></footer>
+    <footer class="ft"><span>Audio无限+ · 2.3.6</span></footer>
   </div>
 
   <!-- 设置视图：可滚动完整页面 -->
@@ -136,13 +214,149 @@
     </section>
 
     <section class="panel">
-      <div class="block-title">功能模块</div>
-      <div class="toggle-row" data-mod="vocal"><div><div class="t-name">人声增强</div><div class="t-desc">提升人声清晰度与存在感</div></div><label class="toggle"><input type="checkbox"><span class="track"></span></label></div>
-      <div class="toggle-row" data-mod="denoise"><div><div class="t-name">降噪</div><div class="t-desc">滤除环境噪音与低频隆隆</div></div><label class="toggle"><input type="checkbox"><span class="track"></span></label></div>
-      <div class="toggle-row" data-mod="compress"><div><div class="t-name">音量均衡</div><div class="t-desc">压缩动态，音量更平稳</div></div><label class="toggle"><input type="checkbox"><span class="track"></span></label></div>
-      <div class="toggle-row" data-mod="deesser"><div><div class="t-name">齿音抑制</div><div class="t-desc">柔化刺耳的“嘶”声</div></div><label class="toggle"><input type="checkbox"><span class="track"></span></label></div>
-      <div class="toggle-row" data-mod="air"><div><div class="t-name">高频空气感</div><div class="t-desc">提升高频，声音更明亮通透</div></div><label class="toggle"><input type="checkbox"><span class="track"></span></label></div>
-      <div class="toggle-row" data-mod="surround"><div><div class="t-name">环绕音效</div><div class="t-desc">拓宽声场，音乐/影视更有空间感</div></div><label class="toggle"><input type="checkbox"><span class="track"></span></label></div>
+      <div class="block-title">功能显示</div>
+      <div class="mod-row" data-mod="enhance">
+        <div class="mod-info"><div class="t-name">音频增强</div><div class="t-desc">人声增强 / 降噪 / 音量均衡 / 齿音抑制 / 空气感</div></div>
+        <div class="mod-toggles">
+          <label class="toggle home" title="在初始界面显示"><input type="checkbox" data-role="home"><span class="track"></span></label>
+        </div>
+      </div>
+      <div class="mod-row" data-mod="resourcedl">
+        <div class="mod-info"><div class="t-name">资源下载</div><div class="t-desc">嗅探并录制下载当前标签页音视频</div></div>
+        <div class="mod-toggles">
+          <label class="toggle home" title="在初始界面显示"><input type="checkbox" data-role="home"><span class="track"></span></label>
+        </div>
+      </div>
+      <div class="mod-row" data-mod="caption">
+        <div class="mod-info"><div class="t-name">实时字幕</div><div class="t-desc">实时语音转文字字幕</div></div>
+        <div class="mod-toggles">
+          <label class="toggle home" title="在初始界面显示"><input type="checkbox" data-role="home"><span class="track"></span></label>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="block-title">实时字幕</div>
+      <div class="field">
+        <span class="field-label">识别引擎</span>
+          <select id="s_capEngine" class="select">
+            <option value="webspeech">Web Speech</option>
+            <option value="mimo">小米 MiMo</option>
+            <option value="custom">自定义 AI</option>
+          </select>
+      </div>
+      <div class="field">
+        <span class="field-label">默认语言</span>
+        <select id="s_capLang" class="select"></select>
+      </div>
+      <div class="field">
+        <span class="field-label">默认音源</span>
+        <div class="seg" id="s_capSrcSeg">
+          <button data-src="mic" class="seg-btn">麦克风</button>
+          <button data-src="tab" class="seg-btn">标签页音频</button>
+        </div>
+      </div>
+
+      <div id="s_capCustom" class="cap-custom" hidden>
+        <div class="field">
+          <span class="field-label">协议</span>
+          <div class="seg" id="s_capProtoSeg">
+            <button data-proto="custom_http" class="seg-btn">HTTP</button>
+            <button data-proto="custom_ws" class="seg-btn">WebSocket</button>
+          </div>
+        </div>
+        <div class="field col">
+          <span class="field-label">API 地址（Endpoint）</span>
+          <input type="text" id="s_capEndpoint" class="text-input" placeholder="https://your-api/transcribe 或 wss://your-api/stream" />
+        </div>
+        <div class="field col">
+          <span class="field-label">API Key（鉴权头）</span>
+          <input type="password" id="s_capApiKey" class="text-input" placeholder="留空则不加 Authorization" />
+        </div>
+        <div class="field">
+          <span class="field-label">模型名</span>
+          <input type="text" id="s_capModel" class="text-input sm" value="whisper-1" />
+        </div>
+        <div class="field col">
+          <span class="field-label">额外请求头（JSON）</span>
+          <input type="text" id="s_capHeaders" class="text-input" placeholder='{"X-Custom":"value"}' />
+        </div>
+        <p class="cap-tip" id="s_capTip"></p>
+      </div>
+      <div id="s_capMimo" class="cap-custom" hidden>
+        <div class="field col">
+          <span class="field-label">API 地址（Endpoint）</span>
+          <input type="text" id="s_capMimoUrl" class="text-input" placeholder="https://api.xiaomimimo.com/v1/chat/completions" />
+        </div>
+        <div class="field col">
+          <span class="field-label">API Key（鉴权头）</span>
+          <input type="password" id="s_capMimoKey" class="text-input" placeholder="留空则不加 api-key 头" />
+        </div>
+        <p class="cap-tip" id="s_capMimoTip"></p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="block-title">字幕样式</div>
+      <div class="field">
+        <span class="field-label">字体</span>
+        <select id="s_capFont" class="select">
+          <option value="'SimSun','Songti SC','STSong','Noto Serif CJK SC',serif">宋体</option>
+          <option value="'PingFang SC','Microsoft YaHei','Segoe UI',sans-serif">苹方 / 微软雅黑</option>
+          <option value="'Heiti SC','SimHei',sans-serif">黑体</option>
+          <option value="'Kaiti SC','KaiTi',serif">楷体</option>
+          <option value="Arial, sans-serif">Arial</option>
+          <option value="'Courier New', monospace">等宽 Monospace</option>
+        </select>
+      </div>
+      <div class="field">
+        <span class="field-label">字号 <b id="s_capSizeVal">30</b> px</span>
+        <input type="range" id="s_capSize" min="14" max="64" step="1" value="30" class="range">
+      </div>
+      <div class="field">
+        <span class="field-label">文字颜色</span>
+        <input type="color" id="s_capColor" class="color-input" value="#000000">
+      </div>
+      <div class="field">
+        <span class="field-label">背景颜色</span>
+        <input type="color" id="s_capBg" class="color-input" value="#ffffff">
+      </div>
+      <div class="field">
+        <span class="field-label">背景不透明度 <b id="s_capBgOpVal">0</b>%</span>
+        <input type="range" id="s_capBgOp" min="0" max="100" step="1" value="0" class="range">
+      </div>
+      <div class="field">
+        <span class="field-label">对齐</span>
+        <div class="seg" id="s_capAlignSeg">
+          <button data-align="left" class="seg-btn">左</button>
+          <button data-align="center" class="seg-btn">居中</button>
+          <button data-align="right" class="seg-btn">右</button>
+        </div>
+      </div>
+      <div class="field">
+        <span class="field-label">最大宽度 <b id="s_capMaxwVal">80</b>%</span>
+        <input type="range" id="s_capMaxw" min="30" max="300" step="1" value="80" class="range">
+      </div>
+      <div class="field">
+        <span class="field-label">高度 <b id="s_capHeightVal">200</b> px</span>
+        <input type="range" id="s_capHeight" min="60" max="400" step="10" value="200" class="range">
+      </div>
+      <div class="cap-preview" id="s_capPreview">实时字幕预览 Preview</div>
+    </section>
+
+    <section class="panel">
+      <div class="block-title">导出</div>
+      <div class="field">
+        <span class="field-label">默认格式</span>
+        <div class="seg" id="s_capExportSeg">
+          <button data-fmt="srt" class="seg-btn">SRT</button>
+          <button data-fmt="txt" class="seg-btn">TXT</button>
+        </div>
+      </div>
+      <div class="export-actions">
+        <button class="export-btn" id="s_exportBtn">导出字幕</button>
+        <button class="ghost-btn" id="s_openHistory">字幕历史</button>
+      </div>
     </section>
 
     <button class="reset" id="resetBtn">恢复默认设置</button>
@@ -157,8 +371,46 @@
     <div id="eqMount" class="eq-mount"></div>
   </div>
 
+  <!-- 媒体控制视图 -->
+  <div id="mediaPanel" class="view scrollable" hidden>
+    <div class="media-wrap">
+      <div class="media-track" id="mediaTrack">未检测到当前页面的音视频</div>
+      <div class="media-status" id="mediaStatus"></div>
+
+      <div class="media-play-row">
+        <button class="media-play" id="mediaPlay" title="播放 / 暂停" disabled>▶</button>
+      </div>
+
+      <div class="media-progress">
+        <button class="seek-btn" id="mediaSeekBack" type="button" title="后退 5 秒">«</button>
+        <span class="m-time" id="mediaCur">00:00</span>
+        <input type="range" id="mediaSeek" class="range" min="0" max="100" step="0.1" value="0" disabled>
+        <span class="m-time" id="mediaDur">00:00</span>
+        <button class="seek-btn" id="mediaSeekFwd" type="button" title="前进 5 秒">»</button>
+      </div>
+
+      <div class="media-ctl-row">
+        <span class="field-label">倍速</span>
+        <div class="speed-bar" id="mediaSpeedBar">
+          <input type="range" id="mediaSpeed" class="range" min="0.5" max="2" step="0.05" value="1">
+          <div class="speed-dots" id="mediaSpeedDots"></div>
+        </div>
+        <input class="speed-val num-edit" id="mediaSpeedVal" type="text" inputmode="decimal" value="1.0×" title="点击输入倍速" aria-label="倍速">
+      </div>
+
+      <div class="media-ctl-row">
+        <span class="field-label">音量</span>
+        <input type="range" id="mediaVol" class="range" min="0" max="100" step="1" value="100" disabled>
+        <input class="speed-val num-edit" id="mediaVolVal" type="text" inputmode="numeric" value="100%" title="点击输入音量" aria-label="音量">
+      </div>
+
+      <button class="reset ghost" id="mediaRescan">重新检测媒体</button>
+    </div>
+  </div>
+
   <script src="../audio-engine.js"></script>
   <script src="../eq/eq-panel.js"></script>
+  <script src="../subtitle/subtitle-defaults.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

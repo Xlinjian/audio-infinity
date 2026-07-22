@@ -91,8 +91,33 @@ body > .view { flex-shrink: 1; }
   display: flex; align-items: center; justify-content: center; transition: .15s;
 }
 .iconbtn:hover { color: var(--accent); border-color: var(--accent); }
+/* 高级均衡器按钮：开启时紫色线条（当前样式），关闭时灰色线条（与设置按钮一致） */
 #openEQ { color: var(--accent); border-color: var(--accent); }
 #openEQ:hover { background: var(--accent); color: #fff; }
+#openEQ.eq-off { color: var(--muted); border-color: var(--border); }
+#openEQ.eq-off:hover { background: transparent; color: var(--accent); border-color: var(--accent); }
+/* 媒体控制按钮：默认（主视图）为填充式强调色圆盘 + 播放三角 */
+#openMedia { color: var(--accent); border-color: var(--accent); background: var(--accent-light); }
+#openMedia:hover { background: var(--accent); color: #fff; }
+#openMedia svg circle { fill: var(--accent); }
+#openMedia:hover svg circle { fill: #fff; }
+#openMedia:hover svg path { fill: #fff; }
+/* 返回初始界面状态：与高级均衡器按键一致 —— 透明底 + 紫色线条，hover 时底色变紫、图标转白 */
+#openMedia.media-home,
+#openMedia.media-active {
+  background: transparent; color: var(--accent); border-color: var(--accent);
+}
+#openMedia.media-home svg,
+#openMedia.media-active svg { color: currentColor; filter: none; }
+#openMedia.media-home:hover,
+#openMedia.media-active:hover {
+  background: var(--accent); color: #fff; border-color: var(--accent);
+}
+#openMedia.media-home:hover svg,
+#openMedia.media-active:hover svg { color: #fff; }
+/* 媒体功能未启用时：与 #openEQ.eq-off 一致，图标/边框变灰，hover 恢复紫色 */
+#openMedia.media-off { background: transparent; color: var(--muted); border-color: var(--border); }
+#openMedia.media-off:hover { background: transparent; color: var(--accent); border-color: var(--accent); }
 
 /* ---------- Tab pill ---------- */
 .tab-pill {
@@ -228,6 +253,12 @@ body > .view { flex-shrink: 1; }
 .status-bar b { color: var(--text); font-weight: 600; }
 .status-bar b.on { color: var(--accent); }
 
+/* ---------- Caption params ---------- */
+.cap-params { margin-top: 14px; padding-top: 4px; }
+.cap-params .hint {
+  font-size: 11px; color: var(--muted); margin-top: 6px; line-height: 1.4;
+}
+
 /* ---------- Fields / selects / inputs ---------- */
 .field { display: flex; align-items: center; gap: 10px; margin: 12px 0; flex-wrap: wrap; }
 .field-label { font-size: 13px; font-weight: 600; width: 56px; flex: none; }
@@ -298,6 +329,17 @@ body > .view { flex-shrink: 1; }
 .t-name { font-size: 13.5px; font-weight: 600; }
 .t-desc { font-size: 11px; color: var(--muted); margin-top: 3px; }
 
+/* 功能模块：每个模块两个开关（启用 / 初始界面显示） */
+.mod-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 0; border-bottom: 1px solid var(--border);
+}
+.mod-row:last-of-type { border-bottom: none; }
+.mod-info { padding-right: 12px; }
+.mod-toggles { display: flex; align-items: center; gap: 16px; flex: none; }
+.toggle.home input:checked + .track { background: #1ABC9C; }
+.mod-hint { font-size: 11px; color: var(--muted); line-height: 1.6; margin: 12px 0 0; }
+
 .reset {
   width: 100%; padding: 11px; font-size: 13.5px; font-weight: 600; cursor: pointer;
   background: var(--surface); color: var(--muted); border: 1px solid var(--border);
@@ -305,6 +347,151 @@ body > .view { flex-shrink: 1; }
 }
 .reset:hover { color: var(--text); border-color: var(--text); }
 
+/* ---------- Caption preview in settings ---------- */
+.cap-preview {
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px;
+  padding: 16px; text-align: center; font-size: 24px; margin-top: 12px;
+  color: #ffffff; text-shadow: 0 1px 4px rgba(0,0,0,.5);
+}
+
+.field.col { flex-direction: column; align-items: stretch; gap: 6px; }
+.field.col .field-label { width: auto; }
+.cap-custom {
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px;
+  padding: 12px; margin-top: 12px;
+}
+.cap-tip { font-size: 11px; color: var(--muted); line-height: 1.5; margin-top: 6px; }
+.select.sm { flex: 0 0 auto; min-width: 120px; }
+
+/* ---------- Export buttons ---------- */
+.export-actions { display: flex; gap: 8px; margin-top: 12px; }
+.export-btn {
+  flex: 1 1 auto; padding: 10px; font-size: 13px; font-weight: 700;
+  border: none; border-radius: 10px; cursor: pointer; color: #fff;
+  background: var(--accent); transition: .15s;
+}
+.export-btn:hover { filter: brightness(1.07); }
+.export-btn:disabled { opacity: .5; cursor: not-allowed; }
+.ghost-btn {
+  flex: 1 1 auto; padding: 10px; font-size: 13px; font-weight: 600;
+  border: 1px solid var(--border); border-radius: 10px; cursor: pointer;
+  color: var(--muted); background: var(--surface-2); transition: .15s;
+}
+.ghost-btn:hover { color: var(--accent); border-color: var(--accent); }
+
 /* ---------- EQ 视图内联 ---------- */
 #eqPanel { display: flex; flex-direction: column; }
 #eqMount { flex: 1 1 auto; overflow-y: auto; min-height: 0; }
+
+/* ---------- 资源下载（猫爪式列表） ---------- */
+.res-toolbar {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+  font-size: 12px; color: var(--muted);
+}
+.res-checkall { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
+.res-sel { font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.res-toolbar .preset.sm:first-of-type { margin-left: auto; }
+.res-toolbar .preset.sm { padding: 6px 10px; font-size: 12px; margin: 0; flex: none; }
+.res-list {
+  max-height: 230px; overflow-y: auto; scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.res-list::-webkit-scrollbar { width: 6px; }
+.res-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.res-item {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 8px 10px;
+}
+.res-item .res-cb { flex: none; width: 15px; height: 15px; }
+.res-info { flex: 1 1 auto; min-width: 0; }
+.res-name {
+  font-size: 12.5px; color: var(--text); font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.res-meta { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+.res-acts { flex: none; display: flex; gap: 6px; }
+.icon-btn-mini {
+  border: 1px solid var(--border); background: var(--surface);
+  color: var(--text); font-size: 11px; padding: 4px 8px; border-radius: 7px;
+  cursor: pointer; transition: .15s; white-space: nowrap;
+}
+.icon-btn-mini:hover { border-color: var(--accent); color: var(--accent); }
+.icon-btn-mini.dl { background: var(--accent); color: #fff; border-color: var(--accent); }
+.icon-btn-mini.dl:hover { filter: brightness(1.08); }
+
+/* ---------- 录制下载块 ---------- */
+.rec-wrap { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 10px; }
+.rec-head { display: flex; align-items: center; justify-content: space-between; }
+.rec-title { font-size: 12.5px; color: var(--text); font-weight: 600; }
+.rec-foot { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 11.5px; color: var(--muted); }
+.rec-time { font-variant-numeric: tabular-nums; font-family: ui-monospace, Menlo, Consolas, monospace; }
+#recBtn { padding: 6px 12px; font-size: 12px; margin: 0; }
+
+/* ---------- 媒体控制视图 ---------- */
+#mediaPanel { display: flex; flex-direction: column; }
+.media-wrap { padding: 14px 16px 18px; display: flex; flex-direction: column; gap: 14px; }
+.media-track {
+  font-size: 13px; font-weight: 600; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.media-status { font-size: 11.5px; color: var(--muted); margin-top: -8px; }
+.media-play-row { display: flex; justify-content: center; padding: 4px 0; }
+.media-play {
+  width: 64px; height: 64px; border-radius: 50%;
+  border: 1px solid var(--accent); background: var(--accent); color: #fff;
+  font-size: 26px; line-height: 1; cursor: pointer; transition: .15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.media-play:hover { filter: brightness(1.08); }
+.media-play:disabled { opacity: .45; cursor: not-allowed; }
+.media-progress { display: flex; align-items: center; gap: 8px; }
+.media-progress .m-time { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 40px; text-align: center; }
+.media-progress .range { flex: 1; }
+.media-ctl-row { display: flex; align-items: center; gap: 10px; }
+.media-ctl-row .field-label { width: 36px; flex: none; }
+.media-ctl-row .seg { flex-wrap: wrap; }
+.media-ctl-row .range { flex: 1; }
+.media-mute.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* ---------- 倍速：进度条 + 档位圆圈 ---------- */
+.speed-bar { position: relative; flex: 1 1 auto; display: flex; align-items: center; }
+.speed-bar .range { position: relative; z-index: 1; width: 100%; }
+.speed-dots { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+.speed-dot {
+  position: absolute; top: 50%; transform: translate(-50%, -50%);
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--surface-2); border: 2px solid var(--border);
+  pointer-events: auto; cursor: pointer; transition: .12s;
+}
+.speed-dot:hover { border-color: var(--accent); }
+.speed-dot.active {
+  background: var(--accent); border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.speed-val {
+  font-size: 12px; font-weight: 700; color: var(--accent);
+  min-width: 38px; text-align: right; flex: none; font-variant-numeric: tabular-nums;
+}
+
+/* 时间进度条两侧快速调整按键（书名号风格） */
+.seek-btn {
+  width: 28px; height: 28px; flex: none; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--surface);
+  color: var(--muted); cursor: pointer; font-size: 16px; font-weight: 400;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: .15s; line-height: 1;
+  font-family: Georgia, "Times New Roman", serif;
+}
+.seek-btn:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.seek-btn:active { transform: scale(0.94); }
+
+/* 倍速 / 音量数值：可直接点击输入具体数值（不仅限于滑动） */
+.num-edit {
+  width: 48px; padding: 3px 4px; border: 1px solid transparent; border-radius: 7px;
+  background: transparent; outline: none; cursor: text; text-align: right;
+  -moz-appearance: textfield; appearance: textfield;
+}
+.num-edit:hover { border-color: var(--border); }
+.num-edit:focus { border-color: var(--accent); background: var(--surface-2); }

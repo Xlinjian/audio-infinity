@@ -1,9 +1,17 @@
-"""打包 Audio无限+ 扩展为 zip，排除测试与开发文件。"""
+"""打包 Audio无限+ 扩展（仅 Chrome / Edge 及 Chromium 内核浏览器）。
+
+说明：实时字幕依赖 Chrome / Edge 的 offscreen + tabCapture 能力，本包仅面向
+Chrome / Edge（及 Opera、Brave、Vivaldi 等 Chromium 内核浏览器），不再单独产出 Firefox 包。
+"""
+
 import os
+import json
 import zipfile
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.join(os.path.dirname(ROOT), 'Audio无限+_1.0.0.zip')
+OUT_DIR = os.path.dirname(ROOT)
+
+CHROME_OUT = os.path.join(OUT_DIR, 'Audio无限+_2.3.6.zip')
 
 EXCLUDE_DIRS = {'__pycache__', '.git', 'node_modules', '.workbuddy'}
 EXCLUDE_FILES = {
@@ -21,19 +29,24 @@ def should_include(rel):
     return True
 
 
-def main():
-    with zipfile.ZipFile(OUT, 'w', zipfile.ZIP_DEFLATED) as zf:
+def build(out_path):
+    count = 0
+    with zipfile.ZipFile(out_path, 'w', zipfile.ZIP_DEFLATED) as zf:
         for dirpath, dirnames, filenames in os.walk(ROOT):
-            # 过滤掉被排除的目录，避免进入
             dirnames[:] = [d for d in dirnames if d not in EXCLUDE_DIRS]
             for fn in filenames:
                 full = os.path.join(dirpath, fn)
-                rel = os.path.relpath(full, ROOT)
+                rel = os.path.relpath(full, ROOT).replace('\\', '/')
                 if not should_include(rel):
                     continue
                 zf.write(full, rel)
+                count += 1
                 print('added', rel)
-    print('packed ->', OUT)
+    print('packed ->', out_path, '(%d files)' % count)
+
+
+def main():
+    build(CHROME_OUT)
 
 
 if __name__ == '__main__':

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Audio无限+ · 字幕历史</title>
+  <link rel="stylesheet" href="history.css" />
+</head>
+<body>
+  <main class="wrap">
+    <header class="hd">
+      <span class="mark">
+        <svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 14c2-6 5-9 8-9s6 3 8 9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="15.5" r="2.4" fill="currentColor"/></svg>
+      </span>
+      <h1>字幕历史</h1>
+      <div class="hd-actions">
+        <button class="btn ghost" id="exportAll">导出全部</button>
+        <button class="btn danger" id="clearAll">清空全部</button>
+      </div>
+    </header>
+
+    <div class="hint" id="hint">实时字幕运行时产生的文本会按「会话」保存到这里，可逐句回看、导出 SRT / TXT。</div>
+
+    <div id="list" class="list"></div>
+  </main>
+
+  <script src="../subtitle/subtitle-defaults.js"></script>
+  <script src="history.js"></script>
+</body>
+</html>

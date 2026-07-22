@@ -30,51 +30,102 @@
     </section>
 
     <section class="card controls" id="controls" hidden>
-      <div class="row top">
-        <label class="switch">
-          <input type="checkbox" id="enableToggle" />
-          <span class="track"></span>
-          <span class="sw-label">音频增强</span>
-        </label>
-        <span class="badge" id="engineBadge">待播放</span>
-      </div>
-
-      <div class="row">
-        <span class="lbl">预设</span>
-        <div class="presets" id="presets"></div>
-      </div>
-
-      <div class="row col">
-        <div class="row-head"><span>人声清晰度</span><span class="val" id="clarityVal">标准</span></div>
-        <input type="range" id="clarity" min="0" max="100" value="50" class="range">
-        <div class="scale"><span>模糊</span><span>清亮</span></div>
-      </div>
-
-      <div class="row col">
-        <div class="row-head"><span>环绕音效</span><span class="val" id="widthVal">关</span></div>
-        <input type="range" id="width" min="100" max="220" value="100" step="5" class="range">
-        <div class="scale"><span>关</span><span>220%</span></div>
-      </div>
-
-      <div class="row col">
-        <div class="row-head"><span>主音量</span><span class="val" id="masterVal">100%</span></div>
-        <input type="range" id="masterGain" min="50" max="600" value="100" step="5" class="range">
-        <div class="scale"><span>50%</span><span>600%</span></div>
-      </div>
-
       <div class="file-name" id="fileName">未选择文件</div>
 
-      <section class="card" id="eqCard" style="margin-top:14px;">
-        <div class="card-title">高级均衡器 (EQ)</div>
-        <div id="eqMount" class="eq-mount"></div>
-      </section>
+      <div class="two-col">
+        <div class="col left-col">
+          <section class="card enhance-card">
+            <div class="row top">
+              <label class="switch">
+                <input type="checkbox" id="enableToggle" />
+                <span class="track"></span>
+                <span class="sw-label">音频增强</span>
+              </label>
+              <span class="badge" id="engineBadge">待播放</span>
+            </div>
+
+            <div class="row">
+              <span class="lbl">预设</span>
+              <div class="presets" id="presets"></div>
+            </div>
+
+            <div class="row col">
+              <div class="row-head"><span>人声清晰度</span><span class="val" id="clarityVal">标准</span></div>
+              <input type="range" id="clarity" min="0" max="100" value="50" class="range">
+              <div class="scale"><span>模糊</span><span>清亮</span></div>
+            </div>
+
+            <div class="row col">
+              <div class="row-head"><span>环绕音效</span><span class="val" id="widthVal">关</span></div>
+              <input type="range" id="width" min="100" max="220" value="100" step="5" class="range">
+              <div class="scale"><span>关</span><span>220%</span></div>
+            </div>
+
+            <div class="row col">
+              <div class="row-head"><span>主音量</span><span class="val" id="masterVal">100%</span></div>
+              <input type="range" id="masterGain" min="50" max="600" value="100" step="5" class="range">
+              <div class="scale"><span>50%</span><span>600%</span></div>
+            </div>
+          </section>
+
+          <section class="card" id="eqCard">
+            <div class="card-title">高级均衡器 (EQ)</div>
+            <div id="eqMount" class="eq-mount"></div>
+          </section>
+        </div>
+
+        <div class="col right-col">
+          <section class="card media-card">
+            <div class="card-title">媒体控制</div>
+            <div class="media-track" id="mediaTrack">本地音频</div>
+            <div class="media-row play-row">
+              <button class="media-btn" id="mediaPlay" title="播放/暂停">▶</button>
+              <span class="media-time" id="mediaCur">00:00</span>
+              <input type="range" id="mediaSeek" class="range" min="0" max="100" value="0">
+              <span class="media-time" id="mediaDur">00:00</span>
+            </div>
+            <div class="media-row vol-row">
+              <button class="media-btn" id="mediaMute" title="静音">静音</button>
+              <input type="range" id="mediaVol" class="range" min="0" max="100" value="100">
+            </div>
+            <div class="media-row speed-row">
+              <span class="lbl">倍速</span>
+              <div class="speed-wrap">
+                <input type="range" id="mediaSpeed" class="range" min="0.5" max="2" step="0.05" value="1">
+                <div class="speed-dots" id="mediaSpeedDots"></div>
+              </div>
+              <span class="speed-val" id="mediaSpeedVal">1.0×</span>
+            </div>
+          </section>
+
+          <!-- stt.js 会在此锚点前插入「语音转文字」卡片 -->
+          <div id="sttAnchor"></div>
+        </div>
+      </div>
     </section>
 
     <audio id="audio" controls hidden></audio>
+
+    <!-- 2.2 新增：本地播放器「设置」改为在当前页内打开（不跳转新页面）。
+         复用 options 页面，iframe 内嵌，右上角提供「返回」按钮关闭。 -->
+    <div class="settings-overlay" id="settingsOverlay" hidden>
+      <div class="settings-bar">
+        <span class="settings-title">设置</span>
+        <button class="settings-back" id="settingsBack" type="button" title="返回">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>返回</span>
+        </button>
+      </div>
+      <iframe class="settings-frame" id="settingsFrame" title="设置" frameborder="0"></iframe>
+    </div>
   </main>
 
   <script src="../audio-engine.js"></script>
   <script src="../eq/eq-panel.js"></script>
+  <script src="../subtitle/subtitle-defaults.js"></script>
   <script src="local-player.js"></script>
+  <!-- 2.1 新增：本地播放器内的语音转文字（依赖 local-player.js 暴露的 window.__babEngine）。
+       录制下载功能已移至插件初始界面的「资源下载」模块。-->
+  <script src="stt.js"></script>
 </body>
 </html>

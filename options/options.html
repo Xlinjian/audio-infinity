@@ -34,30 +34,24 @@
     </section>
 
     <section class="card">
-      <div class="card-title">功能模块</div>
-      <div class="toggle-row" data-mod="vocal">
-        <div><div class="t-name">人声增强</div><div class="t-desc">提升人声清晰度与存在感</div></div>
-        <label class="toggle"><input type="checkbox"><span class="track"></span></label>
+      <div class="card-title">功能显示</div>
+      <div class="mod-row" data-mod="enhance">
+        <div class="mod-info"><div class="t-name">音频增强</div><div class="t-desc">人声增强 / 降噪 / 音量均衡 / 齿音抑制 / 空气感</div></div>
+        <div class="mod-toggles">
+          <label class="toggle home" title="在初始界面显示"><input type="checkbox" data-role="home"><span class="track"></span></label>
+        </div>
       </div>
-      <div class="toggle-row" data-mod="denoise">
-        <div><div class="t-name">降噪</div><div class="t-desc">滤除环境噪音与低频隆隆</div></div>
-        <label class="toggle"><input type="checkbox"><span class="track"></span></label>
+      <div class="mod-row" data-mod="resourcedl">
+        <div class="mod-info"><div class="t-name">资源下载</div><div class="t-desc">嗅探并录制下载当前标签页音视频</div></div>
+        <div class="mod-toggles">
+          <label class="toggle home" title="在初始界面显示"><input type="checkbox" data-role="home"><span class="track"></span></label>
+        </div>
       </div>
-      <div class="toggle-row" data-mod="compress">
-        <div><div class="t-name">音量均衡</div><div class="t-desc">压缩动态，音量更平稳</div></div>
-        <label class="toggle"><input type="checkbox"><span class="track"></span></label>
-      </div>
-      <div class="toggle-row" data-mod="deesser">
-        <div><div class="t-name">齿音抑制</div><div class="t-desc">柔化刺耳的“嘶”声</div></div>
-        <label class="toggle"><input type="checkbox"><span class="track"></span></label>
-      </div>
-      <div class="toggle-row" data-mod="air">
-        <div><div class="t-name">高频空气感</div><div class="t-desc">提升高频，声音更明亮通透</div></div>
-        <label class="toggle"><input type="checkbox"><span class="track"></span></label>
-      </div>
-      <div class="toggle-row" data-mod="surround">
-        <div><div class="t-name">环绕音效</div><div class="t-desc">拓宽声场，音乐/影视更有空间感</div></div>
-        <label class="toggle"><input type="checkbox"><span class="track"></span></label>
+      <div class="mod-row" data-mod="caption">
+        <div class="mod-info"><div class="t-name">实时字幕</div><div class="t-desc">实时语音转文字字幕</div></div>
+        <div class="mod-toggles">
+          <label class="toggle home" title="在初始界面显示"><input type="checkbox" data-role="home"><span class="track"></span></label>
+        </div>
       </div>
     </section>
 
@@ -66,11 +60,137 @@
       <div id="eqMount" class="eq-mount"></div>
     </section>
 
+    <section class="card" id="capCard">
+      <div class="card-title">实时字幕</div>
+
+      <div class="field">
+        <span class="field-label">识别引擎</span>
+        <select id="capEngine" class="select">
+          <option value="webspeech">Web Speech</option>
+          <option value="mimo">小米 MiMo</option>
+          <option value="custom">自定义 AI</option>
+        </select>
+      </div>
+
+      <div id="capCustom" hidden>
+        <div class="field">
+          <span class="field-label">协议</span>
+          <div class="seg" id="capProtoSeg">
+            <button data-proto="custom_http" class="seg-btn">HTTP</button>
+            <button data-proto="custom_ws" class="seg-btn">WebSocket</button>
+          </div>
+        </div>
+        <div class="field col">
+          <span class="field-label">API 地址（Endpoint）</span>
+          <input type="text" id="capEndpoint" class="text-input" placeholder="https://your-api/transcribe 或 wss://your-api/stream" />
+        </div>
+        <div class="field col">
+          <span class="field-label">API Key（鉴权头）</span>
+          <input type="password" id="capApiKey" class="text-input" placeholder="留空则不加 Authorization" />
+        </div>
+        <div class="field">
+          <span class="field-label">模型名</span>
+          <input type="text" id="capModel" class="text-input sm" value="whisper-1" />
+        </div>
+        <div class="field col">
+          <span class="field-label">额外请求头（JSON）</span>
+          <input type="text" id="capHeaders" class="text-input" placeholder='{"X-Custom":"value"}' />
+        </div>
+        <p class="cap-tip" id="capTip"></p>
+      </div>
+
+      <div id="capMimo" hidden>
+        <div class="field col">
+          <span class="field-label">API 地址（Endpoint）</span>
+          <input type="text" id="capMimoUrl" class="text-input" placeholder="https://api.xiaomimimo.com/v1/chat/completions" />
+        </div>
+        <div class="field col">
+          <span class="field-label">API Key（鉴权头）</span>
+          <input type="password" id="capMimoKey" class="text-input" placeholder="留空则不加 api-key 头" />
+        </div>
+        <p class="cap-tip" id="capMimoTip"></p>
+      </div>
+
+      <div class="field">
+        <span class="field-label">默认语言</span>
+        <select id="capLang" class="select"></select>
+      </div>
+
+      <div class="field">
+        <span class="field-label">默认音源</span>
+        <div class="seg" id="capSrcSeg">
+          <button data-src="mic" class="seg-btn">麦克风</button>
+          <button data-src="tab" class="seg-btn">标签页音频</button>
+        </div>
+      </div>
+
+      <div class="card-subtitle">字幕样式</div>
+      <div class="field">
+        <span class="field-label">字体</span>
+        <select id="capFont" class="select">
+          <option value="'SimSun','Songti SC','STSong','Noto Serif CJK SC',serif">宋体</option>
+          <option value="'PingFang SC','Microsoft YaHei','Segoe UI',sans-serif">苹方 / 微软雅黑</option>
+          <option value="'Heiti SC','SimHei',sans-serif">黑体</option>
+          <option value="'Kaiti SC','KaiTi',serif">楷体</option>
+          <option value="Arial, sans-serif">Arial</option>
+          <option value="'Courier New', monospace">等宽 Monospace</option>
+        </select>
+      </div>
+      <div class="field">
+        <span class="field-label">字号 <b id="capSizeVal">30</b> px</span>
+        <input type="range" id="capSize" min="14" max="64" step="1" value="30" class="range" />
+      </div>
+      <div class="field">
+        <span class="field-label">文字颜色</span>
+        <input type="color" id="capColor" class="color" value="#000000" />
+      </div>
+      <div class="field">
+        <span class="field-label">背景颜色</span>
+        <input type="color" id="capBg" class="color" value="#ffffff" />
+      </div>
+      <div class="field">
+        <span class="field-label">背景不透明度 <b id="capBgOpVal">0</b>%</span>
+        <input type="range" id="capBgOp" min="0" max="100" step="1" value="0" class="range" />
+      </div>
+      <div class="field">
+        <span class="field-label">对齐</span>
+        <div class="seg" id="capAlignSeg">
+          <button data-align="left" class="seg-btn">左</button>
+          <button data-align="center" class="seg-btn">居中</button>
+          <button data-align="right" class="seg-btn">右</button>
+        </div>
+      </div>
+      <div class="field">
+        <span class="field-label">最大宽度 <b id="capMaxwVal">80</b>%</span>
+        <input type="range" id="capMaxw" min="30" max="300" step="1" value="80" class="range" />
+      </div>
+      <div class="field">
+        <span class="field-label">高度 <b id="capHeightVal">200</b> px</span>
+        <input type="range" id="capHeight" min="60" max="400" step="10" value="200" class="range" />
+      </div>
+
+      <div class="cap-preview" id="capPreview">实时字幕预览 Preview</div>
+
+      <div class="card-subtitle">导出</div>
+      <div class="field">
+        <span class="field-label">默认格式</span>
+        <div class="seg" id="capExportSeg">
+          <button data-fmt="srt" class="seg-btn">SRT</button>
+          <button data-fmt="txt" class="seg-btn">TXT</button>
+        </div>
+      </div>
+      <div class="export-actions">
+        <button class="btn" id="exportBtn">导出字幕</button>
+        <button class="btn ghost" id="openHistoryBtn">字幕历史</button>
+      </div>
+    </section>
+
     <button class="reset" id="resetBtn">恢复默认设置</button>
   </main>
 
   <script src="../audio-engine.js"></script>
   <script src="../eq/eq-panel.js"></script>
+  <script src="../subtitle/subtitle-defaults.js"></script>
   <script src="options.js"></script>
 </body>
 </html>

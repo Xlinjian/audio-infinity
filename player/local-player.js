@@ -9,6 +9,8 @@
   const { AudioEngine, PRESETS, DEFAULT_STATE, DEFAULT_MODULES } = window.AudioBoosterEngine;
   const engine = new AudioEngine();
   engine.state = { ...DEFAULT_STATE, modules: { ...DEFAULT_MODULES } };
+  // 暴露给 stt.js / recorder.js 复用（它们需要 getRecordingStream() 拿到已增强的音频流）
+  window.__babEngine = engine;
 
   const $ = (id) => document.getElementById(id);
   const fileInput = $('fileInput');
@@ -29,10 +31,24 @@
   const openSettings = $('openSettings');
   const eqMount = $('eqMount');
 
+  const mediaTrack = $('mediaTrack');
+  const mediaPlay = $('mediaPlay');
+  const mediaSeek = $('mediaSeek');
+  const mediaCur = $('mediaCur');
+  const mediaDur = $('mediaDur');
+  const mediaVol = $('mediaVol');
+  const mediaMute = $('mediaMute');
+  const mediaSpeed = $('mediaSpeed');
+  const mediaSpeedVal = $('mediaSpeedVal');
+  const mediaSpeedDots = $('mediaSpeedDots');
+
   const STORE_KEY = 'babState_local';
   let currentURL = null;
-  let surroundOn = DEFAULT_MODULES.surround;
+  let surroundOn = true; // 环绕音效改由初始界面「环绕音效」滑块（width）控制，始终可用
   let eqHandle = null;
+  let mediaSeeking = false;
+  const RATE_LEVELS = [0.5, 1, 1.25, 1.5, 2];
+  const SPEED_MIN = 0.5, SPEED_MAX = 2;
 
   function lightenColor(hex, ratio) {
     const n = parseInt(hex.replace('#', ''), 16);
@@ -59,7 +75,6 @@
           document.documentElement.style.setProperty('--accent-light', lightenColor(s.accent, 0.35));
           document.documentElement.style.setProperty('--accent-dark', darkenColor(s.accent, 0.25));
         }
-        if (s.modules && typeof s.modules.surround === 'boolean') surroundOn = s.modules.surround;
         syncWidthEnabled();
       });
     } catch (e) {}
@@ -103,7 +118,10 @@
     if (currentURL) URL.revokeObjectURL(currentURL);
     currentURL = URL.createObjectURL(file);
     audio.src = currentURL;
-    fileNameEl.textContent = '当前文件：' + file.name;
+    audio.dataset.name = file.name.replace(/\.[^.]+$/, ''); // 去扩展名，供 stt 下载命名
+    const displayName = file.name;
+    fileNameEl.textContent = '当前文件：' + displayName;
+    if (mediaTrack) mediaTrack.textContent = displayName;
     controls.hidden = false; audio.hidden = false; audio.load();
     engine.attach([audio]);
     if (eqHandle) eqHandle.refresh(); // 显示后按实际尺寸重绘曲线
@@ -180,7 +198,7 @@
       chrome.storage.onChanged.addListener((ch, area) => {
         if (area !== 'sync' || !ch.babSettings) return;
         const s = ch.babSettings.newValue || {};
-        if (s.modules && typeof s.modules.surround === 'boolean') { surroundOn = s.modules.surround; syncWidthEnabled(); }
+        syncWidthEnabled();
         if (s.theme) document.documentElement.setAttribute('data-theme', s.theme);
         if (s.accent) {
           document.documentElement.style.setProperty('--accent', s.accent);
@@ -201,7 +219,7 @@
 
   // ---------------- 内联高级均衡器（与全局 EQ 共享） ----------------
   function mountLocalEq() {
-    if (!eqMount || typeof window.mountEqPanel !== 'function') return;
+    if (eqHandle || !eqMount || typeof window.mountEqPanel !== 'function') return;
     eqHandle = window.mountEqPanel(eqMount, {
       getModel: () => engine.state.eq,
       setModel: (m) => {
@@ -220,7 +238,102 @@
     });
   }
 
-  if (openSettings) openSettings.addEventListener('click', (e) => { e.preventDefault(); chrome.runtime.openOptionsPage(); });
+  // ---------------- 设置：在当前页内打开（覆盖层 + iframe 复用 options 页） ----------------
+  const settingsOverlay = $('settingsOverlay');
+  const settingsBack = $('settingsBack');
+  const settingsFrame = $('settingsFrame');
+  let settingsFrameLoaded = false;
+
+  function openSettingsPanel() {
+    if (!settingsFrameLoaded) {
+      // 懒加载，避免页面打开时即拉起 options 页
+      settingsFrame.src = '../options/options.html?embed=1';
+      settingsFrameLoaded = true;
+    }
+    settingsOverlay.hidden = false;
+    document.body.classList.add('settings-open');
+  }
+  function closeSettingsPanel() {
+    settingsOverlay.hidden = true;
+    document.body.classList.remove('settings-open');
+    // 关闭后回写：刷新主题/强调色与 EQ，确保页内改动即时生效
+    applyTheme();
+    if (eqHandle) eqHandle.refresh();
+  }
+  if (openSettings) openSettings.addEventListener('click', (e) => { e.preventDefault(); openSettingsPanel(); });
+  if (settingsBack) settingsBack.addEventListener('click', (e) => { e.preventDefault(); closeSettingsPanel(); });
+  // 按 Esc 关闭设置
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && settingsOverlay && !settingsOverlay.hidden) closeSettingsPanel();
+  });
+
+  // ---------------- 媒体控制（本地 <audio>） ----------------
+  function fmtMedia(sec) {
+    sec = sec || 0;
+    const s = Math.floor(sec % 60), m = Math.floor(sec / 60) % 60, h = Math.floor(sec / 3600);
+    const p = (n) => (n < 10 ? '0' : '') + n;
+    return h > 0 ? (h + ':' + p(m) + ':' + p(s)) : (p(m) + ':' + p(s));
+  }
+  function renderMedia() {
+    if (mediaCur) mediaCur.textContent = fmtMedia(audio.currentTime);
+    if (mediaDur) mediaDur.textContent = audio.duration ? fmtMedia(audio.duration) : '00:00';
+    if (mediaSeek && !mediaSeeking) {
+      mediaSeek.value = audio.duration ? (audio.currentTime / audio.duration) * 100 : 0;
+      setFill(mediaSeek);
+    }
+    if (mediaVol) { mediaVol.value = Math.round(audio.volume * 100); setFill(mediaVol); }
+    if (mediaMute) {
+      mediaMute.textContent = audio.muted ? '取消静音' : '静音';
+      mediaMute.classList.toggle('on', audio.muted);
+    }
+    if (mediaPlay) mediaPlay.textContent = audio.paused ? '▶' : '⏸';
+    renderSpeed(audio.playbackRate);
+  }
+  function fmtRate(v) { return (v % 1 === 0) ? v.toFixed(1) : String(v); }
+  function renderSpeed(rate) {
+    const v = rate || 1;
+    if (mediaSpeed) { mediaSpeed.value = v; setFill(mediaSpeed); }
+    if (mediaSpeedVal) mediaSpeedVal.textContent = fmtRate(v) + '×';
+    if (mediaSpeedDots) {
+      mediaSpeedDots.querySelectorAll('.speed-dot').forEach((d) => {
+        d.classList.toggle('active', Math.abs(parseFloat(d.dataset.rate) - v) < 0.001);
+      });
+    }
+  }
+  function buildSpeedDots() {
+    if (!mediaSpeedDots) return;
+    mediaSpeedDots.innerHTML = '';
+    RATE_LEVELS.forEach((lv) => {
+      const d = document.createElement('span');
+      d.className = 'speed-dot'; d.dataset.rate = lv; d.title = fmtRate(lv) + '×';
+      const pct = (lv - SPEED_MIN) / (SPEED_MAX - SPEED_MIN);
+      d.style.left = 'calc(8px + (100% - 16px) * ' + pct + ')';
+      mediaSpeedDots.appendChild(d);
+    });
+  }
+
+  if (mediaPlay) mediaPlay.addEventListener('click', () => { if (audio.paused) audio.play(); else audio.pause(); });
+  if (mediaSeek) {
+    mediaSeek.addEventListener('input', () => {
+      mediaSeeking = true;
+      const t = audio.duration ? (mediaSeek.value / 100) * audio.duration : 0;
+      audio.currentTime = t; mediaCur.textContent = fmtMedia(t);
+    });
+    mediaSeek.addEventListener('change', () => { mediaSeeking = false; });
+  }
+  if (mediaVol) mediaVol.addEventListener('input', () => { audio.volume = mediaVol.value / 100; });
+  if (mediaMute) mediaMute.addEventListener('click', () => { audio.muted = !audio.muted; });
+  if (mediaSpeed) mediaSpeed.addEventListener('input', () => { const v = parseFloat(mediaSpeed.value); audio.playbackRate = v; renderSpeed(v); });
+  if (mediaSpeedDots) mediaSpeedDots.addEventListener('click', (e) => {
+    const d = e.target.closest('.speed-dot'); if (!d) return;
+    const v = parseFloat(d.dataset.rate); audio.playbackRate = v; renderSpeed(v);
+  });
+  audio.addEventListener('timeupdate', renderMedia);
+  audio.addEventListener('durationchange', renderMedia);
+  audio.addEventListener('volumechange', renderMedia);
+  audio.addEventListener('ratechange', renderMedia);
+  audio.addEventListener('loadedmetadata', renderMedia);
+  buildSpeedDots();
 
   load();
 })();
